@@ -21,6 +21,8 @@ Cada llave privada se genera y se queda en su propio equipo; solo se intercambia
 
 ## Parte 1. Configurar el receptor (WSL)
 
+> **Dónde:** terminal de WSL.
+
 Abre la terminal de tu distribución WSL (Ubuntu/Debian).
 
 **1.1 Instalar lo necesario**
@@ -45,7 +47,7 @@ No necesitas `ufw` ni abrir puertos.
 
 **1.4 Obtener el proyecto y las dependencias**
 ```bash
-git clone <URL-de-tu-repo> secure-sftp-sender
+git clone https://github.com/nicolas-170/secure-sftp-sender secure-sftp-sender
 cd secure-sftp-sender
 python3 -m venv .venv
 source .venv/bin/activate
@@ -76,14 +78,20 @@ ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub        # huella: SHA256:xxxx...
 > Windows llega a WSL por `127.0.0.1` gracias al reenvío de localhost de WSL2 (activo por defecto).
 > Si no conecta, usa la IP que muestra `ip a` dentro de WSL (cambia al reiniciar).
 
+**Fin de la Parte 1.** Deja la terminal de WSL abierta (SSH corriendo) y **pasa a Windows**:
+abre PowerShell y sigue con la Parte 2.
+
 ---
 
 ## Parte 2. Configurar el emisor (Windows)
+
+> **Dónde:** PowerShell en Windows (no en WSL).
 
 PowerShell, con Python 3.9+ instalado (marca *Add to PATH*).
 
 **2.1 Dependencias**
 ```powershell
+git clone https://github.com/nicolas-170/secure-sftp-sender.git
 cd secure-sftp-sender
 python -m venv .venv
 .venv\Scripts\Activate.ps1
@@ -96,8 +104,7 @@ python genkeys.py sender
 ```
 Crea `keys\sender_private.pem` (secreta) y `keys\sender_public.pem`.
 
-**2.3 Editar `config.ini`** con tu usuario de WSL y la huella del paso 1.6
-(host `127.0.0.1` y puerto `2222` ya vienen puestos).
+**2.3 Revisar `config.ini`**: ya trae host `127.0.0.1`, puerto `2222`, usuario `nicolas` y la huella de este WSL. Si reinstalas SSH o usas otro WSL, la huella cambia: repite el paso 1.6 y actualízala.
 
 **2.4 Probar la conexión**
 ```powershell
@@ -105,9 +112,13 @@ Test-NetConnection 127.0.0.1 -Port 2222
 ```
 Debe mostrar `TcpTestSucceeded : True`.
 
+**Fin de la Parte 2.** Sigues en PowerShell (Windows): ahora intercambias las llaves públicas.
+
 ---
 
 ## Parte 3. Intercambiar las llaves públicas (solo las `_public.pem`)
+
+> **Dónde:** PowerShell en Windows, dentro de la carpeta del proyecto.
 
 Desde Windows, cambiando `USUARIO` por el de `whoami` (pide la contraseña de WSL):
 ```powershell
@@ -116,9 +127,13 @@ scp -P 2222 USUARIO@127.0.0.1:secure-sftp-sender/keys/receiver_public.pem keys\
 ```
 Nunca copies los `_private.pem`.
 
+**Fin de la Parte 3.** Ya están las dos llaves públicas en ambos lados. Ahora se envía desde Windows y se recibe en WSL.
+
 ---
 
 ## Parte 4. Enviar y recibir
+
+> **Dónde:** el paso 4.1 en PowerShell (Windows); los pasos 4.2 y 4.3 en la terminal de WSL.
 
 **4.1 Enviar (Windows)**
 ```powershell
