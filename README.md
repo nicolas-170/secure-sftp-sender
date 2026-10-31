@@ -59,19 +59,20 @@ python3 genkeys.py receiver
 Elige una passphrase. Se crean en `keys/`:
 `receiver_private.pem` (secreta, no sale de WSL) y `receiver_public.pem`.
 
-**1.6 Anotar los valores de conexión**
+**1.6 Anotar dos valores que luego usarás en Windows**
+Ejecuta estos dos comandos en WSL y **copia el resultado de cada uno** (los necesitas en el paso 2.3):
 ```bash
-whoami                                                  # usuario
-ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub        # huella: SHA256:xxxx...
+whoami
+ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
 ```
 
-| Valor | Ejemplo |
-|---|---|
-| Host | `127.0.0.1` |
-| Puerto | `22` |
-| Usuario | el de `whoami` |
-| Huella del servidor | `SHA256:AbC...` |
-| Contraseña | la de tu usuario WSL (se pide al enviar) |
+| Comando | Qué devuelve | Dónde se usa en Windows (`config.ini`) |
+|---|---|---|
+| `whoami` | tu usuario de WSL, ej. `nicolas` | línea `user =` |
+| `ssh-keygen -lf ...` | una línea como `256 SHA256:AbC... root@PC (ED25519)` | línea `fingerprint =`: copia **solo** la parte `SHA256:AbC...` |
+
+Los demás valores no cambian: host `127.0.0.1`, puerto `22`. La contraseña no se escribe en
+ningún archivo: el programa la pide al enviar (es la de tu usuario WSL).
 
 > Windows llega a WSL por `127.0.0.1` gracias al reenvío de localhost de WSL2 (activo por defecto).
 > Si no conecta, usa la IP que muestra `ip a` dentro de WSL (cambia al reiniciar).
@@ -106,7 +107,24 @@ python genkeys.py sender
 ```
 Crea `keys\sender_private.pem` (secreta) y `keys\sender_public.pem`.
 
-**2.3 Revisar `config.ini`**: ya trae host `127.0.0.1`, puerto `22`, usuario `nicolas` y la huella de este WSL. Si reinstalas SSH o usas otro WSL, la huella cambia: repite el paso 1.6 y actualízala.
+**2.3 Poner en `config.ini` los valores del paso 1.6**
+Abre `config.ini` en Windows (con el Bloc de notas o VS Code) y reemplaza:
+
+```ini
+[servidor]
+host = 127.0.0.1
+port = 22
+; user: pega aquí el resultado de whoami
+user = nicolas
+destino = recibidos
+; fingerprint: pega aquí SOLO la parte SHA256:... del resultado de ssh-keygen
+fingerprint = SHA256:AbC...
+```
+
+No escribas comentarios (`;`) al final de una línea con valor: se leerían como parte del valor.
+Deben ir en su propia línea, como arriba.
+
+Si cambias de WSL o reinstalas SSH, la huella cambia: repite el paso 1.6 y actualízala.
 
 **2.4 Probar la conexión**
 ```powershell
